@@ -1,9 +1,22 @@
 
 import * as yup from 'yup';
+import i18n from 'i18next';
 import watchedState from './watcher.js';
+import ru from './ru.js';
+
+const i18nInst = i18n.createInstance();
+i18nInst.init({
+  lng: 'ru',
+  debug: true,
+  resources: {
+    ru,
+  },
+}, (err, t) => {
+  if (err) return console.log('something went wrong loading', err);
+  return t('key');
+});
 
 export default () => {
-  // eslint-disable-next-line
  const url = /https?:\/\/[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/;
   const input = document.getElementById('url-input');
   const form = document.querySelector('form');
@@ -19,12 +32,12 @@ export default () => {
 
     const schema = yup.object({
       feedUrl: yup.string()
-        .matches(url, 'Enter correct url!')
+        .required()
+        .matches(url, i18nInst.t('errTexts.errUrl'))
         .notOneOf(
           copies,
-          'This feed is in the list',
+          i18nInst.t('errTexts.errFeed'),
         )
-        .required('Please, enter url'),
     });
     schema.validate({ feedUrl: inputValue })
       .then((feed) => {
@@ -42,13 +55,16 @@ export default () => {
       .catch((err) => {
         watchedState.error = true;
         watchedState.status = false;
-        console.log(err);
+        watchedState.yupError = err;
       });
     values.push(urls);
   });
 
   input.addEventListener('input', () => {
     const inputValue = input.value;
-    if (inputValue === '') watchedState.error = false;
+    if (inputValue === '') {
+      watchedState.error = false;
+      watchedState.yupError = '';
+    }
   });
 };

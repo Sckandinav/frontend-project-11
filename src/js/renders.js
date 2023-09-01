@@ -1,3 +1,21 @@
+
+import i18n from 'i18next';
+import ru from './ru.js';
+
+const i18nInst = i18n.createInstance();
+i18nInst.init({
+  lng: 'ru',
+  debug: true,
+  resources: {
+    ru,
+  },
+}, (err, t) => {
+  if (err) return console.log('something went wrong loading', err);
+  return t('key');
+});
+
+
+
 const input = document.getElementById('url-input');
 const feedsBox = document.querySelector('.feeds');
 const postsBox = document.querySelector('.posts');
@@ -36,7 +54,7 @@ const createFeedBlock = (err, status, feeds) => {
   cardBody.setAttribute('class', 'card-body');
   const cardTitle = document.createElement('h4');
   cardTitle.setAttribute('class', 'card-title h4');
-  cardTitle.textContent = 'Фиды';
+  cardTitle.textContent = i18nInst.t('Фиды');
   cardBody.appendChild(cardTitle);
   const listGroup = document.createElement('ul');
   listGroup.setAttribute('class', 'list-group bordet-0 rounded-0');
@@ -75,7 +93,7 @@ const createPostItem = (posts) => {
   btn.setAttribute('data-id', '2');
   btn.setAttribute('data-bs-toggle', 'modal');
   btn.setAttribute('data-bs-target', '#modal');
-  btn.textContent = 'Просмотр';
+  btn.textContent = i18nInst.t('Просмотр');
 
   const parentDiv = document.querySelector(posts);
   const listGroup = parentDiv.querySelector('ul');
@@ -100,7 +118,7 @@ const createPostBlock = (err, status, posts) => {
   cardBody.setAttribute('class', 'card-body');
   const cardTitle = document.createElement('h4');
   cardTitle.setAttribute('class', 'card-title h4');
-  cardTitle.textContent = 'Посты';
+  cardTitle.textContent = i18nInst.t('Посты');
   cardBody.appendChild(cardTitle);
   const listGroup = document.createElement('ul');
   listGroup.setAttribute('class', 'list-group bordet-0 rounded-0');
@@ -122,7 +140,7 @@ const createPostBlock = (err, status, posts) => {
   btn.setAttribute('data-id', '2');
   btn.setAttribute('data-bs-toggle', 'modal');
   btn.setAttribute('data-bs-target', '#modal');
-  btn.textContent = 'Просмотр';
+  btn.textContent = i18nInst.t('Просмотр');
 
   li.append(link, btn);
   listGroup.prepend(li);
