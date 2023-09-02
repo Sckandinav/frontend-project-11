@@ -1,9 +1,8 @@
-
 import * as yup from 'yup';
 import i18n from 'i18next';
 import axios from 'axios';
 import watchedState from './watcher.js';
-import ru from './ru.js';
+import ru from './locales/ru.js';
 import makeParsing from './parsers.js';
 
 const i18nInst = i18n.createInstance();
@@ -91,6 +90,7 @@ export default () => {
       .catch((err) => {
         watchedState.loadErr = err.message;
         watchedState.responceStatus = err.code;
+        console.log(err);
       })
       .finally(() => {
         watchedState.final = true;

@@ -9,9 +9,9 @@ export default {
     keyPosts: 'Посты',
     btnPosts: 'Просмотр',
     errTexts: {
-      errUrl: 'Введите правильный URL-адрес',
-      errFeed: 'Этот rss уже присутствует в списке фидов',
-      invalid: 'Ресурс не содержит валидный rss',
+      errUrl: 'Ссылка должна быть валидным URL',
+      errFeed: 'RSS уже существует',
+      invalid: 'Ресурс не содержит валидный RSS',
       networkErr: 'Ошибка сети',
     },
     valid: 'RSS успешно загружен',

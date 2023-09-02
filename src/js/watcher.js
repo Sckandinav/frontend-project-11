@@ -2,10 +2,11 @@ import onChange from 'on-change';
 import i18n from 'i18next';
 import axios from 'axios';
 import _ from 'lodash';
-import { createPostBlock, createFeedBlock, makeUpdatedRendering } from './renders.js';
+import { createPostBlock, makeUpdatedRendering } from './renders/renders-posts.js';
+import createFeedBlock from './renders/renders-feeds.js';
 import { makeParsingForAxios } from './parsers.js';
-import ru from './ru.js';
-import callModal from './modal.js';
+import ru from './locales/ru';
+import callModal from './renders/modal.js';
 
 const i18nInst = i18n.createInstance();
 i18nInst.init({
@@ -142,6 +143,14 @@ const watchedState = onChange(state, (path) => {
     liButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
         callModal(btn);
+      });
+    });
+    const links = elements.postsDiv.querySelectorAll('li a');
+    links.forEach((link) => {
+      link.addEventListener('click', () => {
+        link.classList.remove('fw-bold');
+        link.classList.add('fw-normal');
+        link.classList.add('visited');
       });
     });
   }

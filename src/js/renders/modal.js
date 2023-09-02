@@ -1,5 +1,5 @@
 import i18n from 'i18next';
-import ru from './ru.js';
+import ru from '../locales/ru.js';
 
 const i18nInst = i18n.createInstance();
 i18nInst.init({
@@ -16,6 +16,8 @@ i18nInst.init({
 const callModal = (btn) => {
   const link = btn.previousElementSibling;
   const href = link.getAttribute('href');
+  link.classList.remove('fw-bold');
+  link.classList.add('fw-normal');
   link.classList.add('visited');
   const description = btn.nextElementSibling;
 
