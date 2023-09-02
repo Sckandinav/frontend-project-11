@@ -10,7 +10,10 @@ export default {
     btnPosts: 'Просмотр',
     errTexts: {
       errUrl: 'Введите правильный URL-адрес',
-      errFeed: 'Этот rss уже присутствует в списке',
+      errFeed: 'Этот rss уже присутствует в списке фидов',
+      invalid: 'Ресурс не содержит валидный rss',
+      networkErr: 'Ошибка сети',
     },
+    valid: 'RSS успешно загружен',
   },
 };

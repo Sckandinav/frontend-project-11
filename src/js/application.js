@@ -1,13 +1,15 @@
 
 import * as yup from 'yup';
 import i18n from 'i18next';
+import axios from 'axios';
 import watchedState from './watcher.js';
 import ru from './ru.js';
+import makeParsing from './parser.js';
 
 const i18nInst = i18n.createInstance();
 i18nInst.init({
   lng: 'ru',
-  debug: true,
+  debug: false,
   resources: {
     ru,
   },
@@ -24,6 +26,12 @@ export default () => {
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
+    watchedState.process = 'processing';
+    watchedState.repetError = false;
+    watchedState.buildStatus = false;
+    watchedState.yupError = false;
+    watchedState.final = false;
+    watchedState.responseEmpty = false;
     const inputValue = input.value;
     watchedState.feeds.push(inputValue);
     const urlsStr = JSON.stringify(watchedState.feeds);
@@ -44,27 +52,53 @@ export default () => {
         copies.forEach((item) => {
           const { feedUrl } = feed;
           if (item === feedUrl) {
-            watchedState.error = true;
-            watchedState.status = false;
-            return false;
+            watchedState.repetError = true;
+            watchedState.buildStatus = false;
           }
           return null;
         });
-        watchedState.status = true;
+        watchedState.buildStatus = true;
       })
       .catch((err) => {
-        watchedState.error = true;
-        watchedState.status = false;
-        watchedState.yupError = err;
+        watchedState.repetError = true;
+        watchedState.buildStatus = false;
+        watchedState.yupError = err.message;
       });
-    values.push(urls);
+      const routes = {
+        rssPath: () => `https://allorigins.hexlet.app/get?disableCache=true&url=${inputValue}`,
+      };
+      axios.get(routes.rssPath())
+        .then((responce) => {
+          if (makeParsing(responce.data.contents) === false) {
+            watchedState.responseFeeds.push(null);
+            watchedState.responseEmpty = true;
+            values.push(undefined);
+          }
+          const data = makeParsing(responce.data.contents);
+          const [feed, posts] = data;
+          watchedState.responseFeeds.push(feed);
+          watchedState.responsePosts.push(posts);
+          watchedState.responceStatus = responce.status;
+          values.push(urls[urls.length - 1]);
+        })
+      .catch((err) => {
+        watchedState.loadErr = err.message;
+        watchedState.responceStatus = err.code;
+      })
+      .finally(() => {
+        watchedState.final = true;
+        watchedState.process = 'ready';
+      });
+   
   });
 
   input.addEventListener('input', () => {
     const inputValue = input.value;
+    watchedState.input = 'ready';
     if (inputValue === '') {
-      watchedState.error = false;
+      watchedState.repetError = false;
       watchedState.yupError = '';
+      watchedState.input = '';
     }
   });
 };
