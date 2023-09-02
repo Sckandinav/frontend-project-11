@@ -4,7 +4,7 @@ import i18n from 'i18next';
 import axios from 'axios';
 import watchedState from './watcher.js';
 import ru from './ru.js';
-import makeParsing from './parser.js';
+import makeParsing from './parsers.js';
 
 const i18nInst = i18n.createInstance();
 i18nInst.init({
@@ -19,7 +19,7 @@ i18nInst.init({
 });
 
 export default () => {
- const url = /https?:\/\/[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/;
+ const regexp = /https?:\/\/[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/;
   const input = document.getElementById('url-input');
   const form = document.querySelector('form');
   const values = [];
@@ -41,7 +41,7 @@ export default () => {
     const schema = yup.object({
       feedUrl: yup.string()
         .required()
-        .matches(url, i18nInst.t('errTexts.errUrl'))
+        .matches(regexp, i18nInst.t('errTexts.errUrl'))
         .notOneOf(
           copies,
           i18nInst.t('errTexts.errFeed'),
@@ -68,17 +68,23 @@ export default () => {
         rssPath: () => `https://allorigins.hexlet.app/get?disableCache=true&url=${inputValue}`,
       };
       axios.get(routes.rssPath())
-        .then((responce) => {
-          if (makeParsing(responce.data.contents) === false) {
+        .then((response) => {
+        if (makeParsing(response.data.contents) === false) {
             watchedState.responseFeeds.push(null);
             watchedState.responseEmpty = true;
+            watchedState.setTimeout.trueLinks.push(undefined);
             values.push(undefined);
           }
-          const data = makeParsing(responce.data.contents);
+          const { url, content_type } = response.data.status;
+        if (content_type !== 'text/html; charset=utf-8') {
+          watchedState.setTimeout.trueLinks.push(url);
+        }
+        const data = makeParsing(response.data.contents);
+
           const [feed, posts] = data;
           watchedState.responseFeeds.push(feed);
           watchedState.responsePosts.push(posts);
-          watchedState.responceStatus = responce.status;
+          watchedState.responceStatus = response.status;
           values.push(urls[urls.length - 1]);
         })
       .catch((err) => {
@@ -87,7 +93,7 @@ export default () => {
       })
       .finally(() => {
         watchedState.final = true;
-        watchedState.process = 'ready';
+        watchedState.process = 'wait';
       });
    
   });

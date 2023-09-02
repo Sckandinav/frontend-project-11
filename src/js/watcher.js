@@ -1,7 +1,9 @@
 import onChange from 'on-change';
 import i18n from 'i18next';
+import axios from 'axios';
 import _ from 'lodash';
-import { createPostBlock, createFeedBlock } from './renders.js';
+import { createPostBlock, createFeedBlock, makeUpdatedRendering } from './renders.js';
+import { makeParsingForAxios } from './parsers.js';
 import ru from './ru.js';
 
 const i18nInst = i18n.createInstance();
@@ -24,6 +26,7 @@ const elements = {
   exampleP: document.querySelector('.mt-2'),
   btn: document.querySelector('button[type="submit"]'),
   dangerP: document.querySelector('.feedback'),
+  postsDiv: document.querySelector('.posts'),
 };
 
 elements.lead.textContent = i18nInst.t('keyLead');
@@ -45,7 +48,11 @@ const state = {
   arrFeeds: [],
   arrPosts: [],
   final: false,
-  process: 'ready',
+  process: 'wait',
+  setTimeout: {
+  trueLinks: [],
+  axiosError: '',
+  },
 };
 
 const fillArr = (feeds, posts, repErr) => {
@@ -89,7 +96,7 @@ const watchedState = onChange(state, (path) => {
     elements.btn.setAttribute('disabled', '');
     elements.dangerP.textContent = '';
   }
-  if (state.process === 'ready') {
+  if (state.process === 'wait') {
     elements.input.removeAttribute('disabled');
     elements.btn.removeAttribute('disabled');
   }
@@ -112,6 +119,30 @@ const watchedState = onChange(state, (path) => {
     state.buildStatus = false;
     state.final = false;
   }
+
+  const filteredLinks = state.setTimeout.trueLinks.filter((link) => link !== undefined);
+  const workingLinks = _.uniq(filteredLinks);
+  const getNewsUpdate = (links) => {
+    const billet = links.map((link) => `https://allorigins.hexlet.app/get?disableCache=true&url=${link}`);
+    const urls = billet.map((detail) => axios(detail).then((response) => response.data.contents));
+    Promise.all(urls)
+      .then((data) => {
+        data.forEach((item) => {
+          if (makeParsingForAxios(item, state.responseFeeds) === false) {
+            throw new Error('No data');
+          }
+          const info = makeParsingForAxios(item, state.responseFeeds);
+          const [posts] = info;
+          makeUpdatedRendering(posts, elements.postsDiv);
+        });
+      })
+      .catch((error) => {
+        state.setTimeout.axiosError = error;
+        console.log(error);
+      });
+    setTimeout(getNewsUpdate, 5000, links);
+  };
+  setTimeout(() => getNewsUpdate(workingLinks), 5000);
 
   if (state.loadErr === 'Network Error' && state.responceStatus !== 200) {
     elements.dangerP.classList.remove('text-success');
