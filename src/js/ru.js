@@ -15,5 +15,9 @@ export default {
       networkErr: 'Ошибка сети',
     },
     valid: 'RSS успешно загружен',
+    modal: {
+      primary: 'Читать полностью',
+      secondary: 'Закрыть',
+    },
   },
 };

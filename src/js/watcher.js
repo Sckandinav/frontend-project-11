@@ -5,6 +5,7 @@ import _ from 'lodash';
 import { createPostBlock, createFeedBlock, makeUpdatedRendering } from './renders.js';
 import { makeParsingForAxios } from './parsers.js';
 import ru from './ru.js';
+import callModal from './modal.js';
 
 const i18nInst = i18n.createInstance();
 i18nInst.init({
@@ -53,6 +54,7 @@ const state = {
   trueLinks: [],
   axiosError: '',
   },
+  mutation: false,
 };
 
 const fillArr = (feeds, posts, repErr) => {
@@ -66,20 +68,16 @@ const fillArr = (feeds, posts, repErr) => {
 
 
 const watchedState = onChange(state, (path) => {
-
   fillArr(state.arrFeeds, state.arrPosts, state.repetError);
   const billetFeeds = state.arrFeeds.flat();
   const uniqFeeds = _.uniq(billetFeeds);
   const uniqPosts = _.last(state.arrPosts);
-
   if (state.yupError !== '') elements.dangerP.textContent = state.yupError;
-
   if (state.repetError === true) {
     elements.input.classList.add('error');
     elements.dangerP.classList.remove('text-success');
     elements.dangerP.classList.add('text-danger');
   }
-
   if (state.input === '') {
     elements.input.classList.remove('error');
     elements.dangerP.textContent = '';
@@ -90,7 +88,6 @@ const watchedState = onChange(state, (path) => {
     elements.input.classList.remove('error');
     state.yupError = '';
   }
-
   if (state.process === 'processing') {
     elements.input.setAttribute('disabled', '');
     elements.btn.setAttribute('disabled', '');
@@ -100,15 +97,12 @@ const watchedState = onChange(state, (path) => {
     elements.input.removeAttribute('disabled');
     elements.btn.removeAttribute('disabled');
   }
-
   if (state.responseEmpty === true && _.last(state.responseFeeds) === null) {
     elements.dangerP.classList.remove('text-success');
     elements.dangerP.classList.add('text-danger');
     elements.dangerP.textContent = i18nInst.t('errTexts.invalid');
-
     if (state.yupError !== '') state.responseEmpty = false;
   }
-
   if (uniqFeeds.length !== 0 && state.buildStatus === true
     && state.final === true && _.last(state.responseFeeds) !== null) {
     createFeedBlock(state.responseEmpty, state.responceStatus, '.feeds', uniqFeeds);
@@ -118,31 +112,39 @@ const watchedState = onChange(state, (path) => {
     elements.dangerP.textContent = i18nInst.t('valid');
     state.buildStatus = false;
     state.final = false;
+    const filteredLinks = state.setTimeout.trueLinks.filter((link) => link !== undefined);
+    const workingLinks = _.uniq(filteredLinks);
+    const getNewsUpdate = (links) => {
+      const billet = links.map((link) => `https://allorigins.hexlet.app/get?disableCache=true&url=${link}`);
+      const urls = billet.map((detail) => axios(detail).then((response) => response.data.contents));
+      Promise.all(urls)
+        .then((data) => {
+          data.forEach((item) => {
+            if (makeParsingForAxios(item, state.responseFeeds) === false) {
+              throw new Error('No data');
+            }
+            const info = makeParsingForAxios(item, state.responseFeeds);
+            const [posts] = info;
+            makeUpdatedRendering(posts, elements.postsDiv);
+          });
+        })
+        .catch((error) => {
+          state.setTimeout.axiosError = error;
+          console.log(error);
+        });
+      setTimeout(getNewsUpdate, 5000, links);
+    };
+    setTimeout(() => getNewsUpdate(workingLinks), 5000);
   }
 
-  const filteredLinks = state.setTimeout.trueLinks.filter((link) => link !== undefined);
-  const workingLinks = _.uniq(filteredLinks);
-  const getNewsUpdate = (links) => {
-    const billet = links.map((link) => `https://allorigins.hexlet.app/get?disableCache=true&url=${link}`);
-    const urls = billet.map((detail) => axios(detail).then((response) => response.data.contents));
-    Promise.all(urls)
-      .then((data) => {
-        data.forEach((item) => {
-          if (makeParsingForAxios(item, state.responseFeeds) === false) {
-            throw new Error('No data');
-          }
-          const info = makeParsingForAxios(item, state.responseFeeds);
-          const [posts] = info;
-          makeUpdatedRendering(posts, elements.postsDiv);
-        });
-      })
-      .catch((error) => {
-        state.setTimeout.axiosError = error;
-        console.log(error);
+  if (state.mutation === true) {
+    const liButtons = elements.postsDiv.querySelectorAll('.btn-sm');
+    liButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        callModal(btn);
       });
-    setTimeout(getNewsUpdate, 5000, links);
-  };
-  setTimeout(() => getNewsUpdate(workingLinks), 5000);
+    });
+  }
 
   if (state.loadErr === 'Network Error' && state.responceStatus !== 200) {
     elements.dangerP.classList.remove('text-success');

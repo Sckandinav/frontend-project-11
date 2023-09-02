@@ -79,30 +79,39 @@ const createFeedBlock = (respEmpty, respSt, feeds, feedArr) => {
   return feedsBox;  
 };
 
+const createElemLi = (idfeed, itemlink, title, description) => {
+  const li = document.createElement('li');
+  li.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start border-0 border-end-0');
+  li.setAttribute('data-feedid', `#${idfeed}`);
+
+  const link = document.createElement('a');
+  link.setAttribute('class', 'fd-bold');
+  link.setAttribute('href', itemlink);
+  link.setAttribute('data-id', '2');
+  link.setAttribute('target', '_blank');
+  link.setAttribute('rel', 'noopener noreferrer');
+  link.textContent = title;
+
+  const btn = document.createElement('button');
+  btn.setAttribute('class', 'btn btn-outline-primary btn-sm');
+  btn.setAttribute('type', 'button');
+  btn.setAttribute('data-id', '2');
+  btn.setAttribute('data-bs-toggle', 'modal');
+  btn.setAttribute('data-bs-target', '#modal');
+  btn.textContent = i18nInst.t('btnPosts');
+
+  const descriptionP = document.createElement('p');
+  descriptionP.setAttribute('style', 'display: none');
+  descriptionP.textContent = description;
+  li.append(link, btn, descriptionP);
+  return li;
+};
+
 const createPostItem = (posts, postArr) => {
   postArr.forEach((item) => {
-    const li = document.createElement('li');
-    li.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start border-0 border-end-0');
-    li.setAttribute('data-feedid', item.idFeed);
-    const link = document.createElement('a');
-    link.setAttribute('class', 'fd-bold');
-    link.setAttribute('href', item.link);
-    link.setAttribute('data-id', '2');
-    link.setAttribute('target', '_blank');
-    link.setAttribute('rel', 'noopener noreferrer');
-    link.textContent = item.title;
-
-    const btn = document.createElement('button');
-    btn.setAttribute('class', 'btn btn-outline-primary btn-sm');
-    btn.setAttribute('type', 'button');
-    btn.setAttribute('data-id', '2');
-    btn.setAttribute('data-bs-toggle', 'modal');
-    btn.setAttribute('data-bs-target', '#modal');
-    btn.textContent = i18nInst.t('btnPosts');
-
+    const li = createElemLi(item.idFeed, item.link, item.title, item.description);
     const parentDiv = document.querySelector(posts);
     const listGroup = parentDiv.querySelector('ul');
-    li.append(link, btn);
     listGroup.prepend(li);
   });
 
@@ -134,26 +143,7 @@ const createPostBlock = (respEmpty, respSt, posts, postArr) => {
 
   const copy = postArr.flat();
   copy.forEach((item) => {
-    const li = document.createElement('li');
-    li.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start border-0 border-end-0');
-    li.setAttribute('data-feedid', item.idFeed);
-    const link = document.createElement('a');
-    link.setAttribute('class', 'fd-bold');
-    link.setAttribute('href', item.link);
-    link.setAttribute('data-id', '2');
-    link.setAttribute('target', '_blank');
-    link.setAttribute('rel', 'noopener noreferrer');
-    link.textContent = item.title;
-
-    const btn = document.createElement('button');
-    btn.setAttribute('class', 'btn btn-outline-primary btn-sm');
-    btn.setAttribute('type', 'button');
-    btn.setAttribute('data-id', '2');
-    btn.setAttribute('data-bs-toggle', 'modal');
-    btn.setAttribute('data-bs-target', '#modal');
-    btn.textContent = i18nInst.t('btnPosts');
-
-    li.append(link, btn);
+    const li = createElemLi(item.idFeed, item.link, item.title, item.description);
     listGroup.prepend(li);
   });
 
@@ -167,37 +157,18 @@ const makeUpdatedRendering = (posts, ancestor) => {
   const controlId = lastElem.idFeed;
   const listGroup = ancestor.querySelector('ul');
   posts.forEach((item) => {
-    const feedLies = listGroup.querySelectorAll(`li[data-feedid="${controlId}"]`);
+    const feedLies = listGroup.querySelectorAll(`li[data-feedid="#${controlId}"]`);
     const allLinks = listGroup.querySelectorAll('li a');
     const linksArr = Array.from(allLinks);
     const innerTexts = linksArr.map((link) => link.innerHTML);
-    const lastLi = _.last(feedLies);
+    const firstLi = feedLies[0];
 
     if (!innerTexts.includes(item.title)) {
-      const li = document.createElement('li');
-      li.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start border-0 border-end-0');
-      li.setAttribute('data-feedid', controlId);
-      const link = document.createElement('a');
-      link.setAttribute('class', 'fd-bold');
-      link.setAttribute('href', item.link);
-      link.setAttribute('data-id', '2');
-      link.setAttribute('target', '_blank');
-      link.setAttribute('rel', 'noopener noreferrer');
-      link.textContent = item.title;
-
-      const btn = document.createElement('button');
-      btn.setAttribute('class', 'btn btn-outline-primary btn-sm');
-      btn.setAttribute('type', 'button');
-      btn.setAttribute('data-id', '2');
-      btn.setAttribute('data-bs-toggle', 'modal');
-      btn.setAttribute('data-bs-target', '#modal');
-      btn.textContent = i18nInst.t('btnPosts');
-
-      li.append(link, btn);
-      lastLi.after(li);
+      const li = createElemLi(controlId, item.link, item.title, item.description);
+      firstLi.before(li);
     }
   });
-  return null;
+  return null;  
 };
 
 export {

@@ -23,6 +23,7 @@ export default () => {
   const input = document.getElementById('url-input');
   const form = document.querySelector('form');
   const values = [];
+  const postsBox = document.querySelector('.posts');
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -107,4 +108,12 @@ export default () => {
       watchedState.input = '';
     }
   });
+
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.type === 'childList') watchedState.mutation = true;
+    });
+  });
+  const config = { attributes: true, childList: true, characterData: true };
+  observer.observe(postsBox, config);
 };

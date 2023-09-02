@@ -21,11 +21,13 @@ export default (response) => {
     items.forEach((item) => {
       const titleP = item.querySelector('title');
       const link = item.querySelector('link');
+      const postDescription = item.querySelector('description');
       const idP = uniqueId('post_');
       posts.push({
         idFeed: idF,
         id: idP,
         title: titleP.textContent,
+        description: postDescription.textContent,
         link: link.textContent,
       });
     });
@@ -61,12 +63,14 @@ const makeParsingForAxios = (response, feeds) => {
       if (item === null) return false;
       const titleP = item.querySelector('title');
       const link = item.querySelector('link');
+      const postDescription = item.querySelector('description');
       const idP = uniqueId('post_');
       const feedId = getFeedId(feeds, titleF.textContent);
       posts.push({
         idFeed: feedId,
         id: idP,
         title: titleP.textContent,
+        description: postDescription.textContent,
         link: link.textContent,
       });
       return null;
