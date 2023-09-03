@@ -3,10 +3,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
-const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
-  entry: path.resolve(__dirname, './src/js/main.js'),
+  entry: path.resolve(__dirname, './src/js/index.js'),
   output: {
     filename: '[name].[contenthash].js',
     path: path.resolve(__dirname, './dist/'),
@@ -19,12 +18,6 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: '[name].[contenthash].css',
     }),
-    new CopyPlugin({
-      patterns: [{
-        from: path.resolve(__dirname, './src/images/'),
-        to: path.resolve(__dirname, './dist/images/')
-      }]
-    })
   ],
   module: {
     rules: [
