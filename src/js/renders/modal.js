@@ -1,29 +1,18 @@
-import i18n from 'i18next';
-import ru from '../locales/ru.js';
-
-const i18nInst = i18n.createInstance();
-i18nInst.init({
-  lng: 'ru',
-  debug: false,
-  resources: {
-    ru,
-  },
-}, (err, t) => {
-  if (err) return console.log('something went wrong loading', err);
-  return t('key');
-});
-
-const callModal = (btn) => {
+const callModal = (btnId, primaryText, secondaryText) => {
+  const btn = document.querySelector(`#${btnId}`);
   const link = btn.previousElementSibling;
   const href = link.getAttribute('href');
   link.classList.remove('fw-bold');
   link.classList.add('fw-normal');
   link.classList.add('visited');
+
   const description = btn.nextElementSibling;
+  const reversedDescription = description.textContent;
+  const modalBodyContent = reversedDescription.split('').reverse().join('');
 
   const readMore = document.querySelector('.btn-primary');
   const close = document.querySelector('.btn-secondary');
-  close.textContent = i18nInst.t('modal.secondary');
+  close.textContent = secondaryText;
 
   const btnLink = document.createElement('a');
   btnLink.setAttribute('class', 'btn btn-primary full-article');
@@ -31,16 +20,16 @@ const callModal = (btn) => {
   btnLink.setAttribute('role', 'button');
   btnLink.setAttribute('target', '_blank');
   btnLink.setAttribute('rel', 'noopener noreferrer');
-  btnLink.textContent = i18nInst.t('modal.primary');
-
-  const modalFooter = document.querySelector('.modal-footer');
-  readMore.remove();
-  modalFooter.prepend(btnLink);
+  btnLink.textContent = primaryText;
 
   const modalTitle = document.querySelector('.modal-title');
   const modalBody = document.querySelector('.modal-body');
   modalTitle.textContent = link.textContent;
-  modalBody.textContent = description.textContent;
+  modalBody.textContent = modalBodyContent;
+
+  const modalFooter = document.querySelector('.modal-footer');
+  readMore.remove();
+  modalFooter.prepend(btnLink);
 };
 
 export default callModal;

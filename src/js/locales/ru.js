@@ -1,4 +1,3 @@
-
 export default {
   translation: {
     keyHeader: 'RSS агрегатор',
@@ -9,6 +8,7 @@ export default {
     keyPosts: 'Посты',
     btnPosts: 'Просмотр',
     errTexts: {
+      required: 'Не должно быть пустым',
       errUrl: 'Ссылка должна быть валидным URL',
       errFeed: 'RSS уже существует',
       invalid: 'Ресурс не содержит валидный RSS',
