@@ -5,6 +5,7 @@ const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = {
+  mode: process.env.NODE_ENV || 'development',
   entry: path.resolve(__dirname, './src/js/index.js'),
   output: {
     filename: '[name].[contenthash].js',
@@ -40,5 +41,8 @@ module.exports = {
     port: 5000,
     hot: true,
     open: true,
+    client: {
+      overlay: false
+    }
   },
 }
