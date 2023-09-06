@@ -13,5 +13,5 @@ rules:
   no-console: 0
   import/extensions: 0
   camelcase: ["error", {ignoreDestructuring: true}]  
-  import/no-unresolved: 0
+  no-unused-vars: "error",
   no-param-reassign: 0  
