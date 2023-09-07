@@ -1,8 +1,8 @@
 {
   "name": "@hexlet/code",
   "version": "1.0.0",
-  "description": "[![Actions Status](https://github.com/Sckandinav/frontend-project-11/workflows/hexlet-check/badge.svg)](https://github.com/Sckandinav/frontend-project-11/actions)",
-  "main": "index.js",
+  "description": "RSS-reader (by Balov V.)",
+  "main": "./src/js/index.js",
   "scripts": {
     "serve": "npx webpack serve --mode development",
     "build-dev": "npx webpack --mode development",
@@ -36,7 +36,6 @@
     "i18next": "^23.4.6",
     "lodash": "^4.17.21",
     "on-change": "^4.0.2",
-    "playwright": "^1.37.1",
     "yup": "^1.2.0"
   }
 }
