@@ -8,6 +8,8 @@ import parse from './parsers.js';
 import { addProxy, getFeedId, updatePosts } from './utils.js';
 import mainRender from './renders/mainRender.js';
 
+const timeoutPostsUpdating = 5000;
+
 export default () => {
   const i18nInst = i18n.createInstance();
   i18nInst.init({
@@ -22,15 +24,15 @@ export default () => {
         lead: document.querySelector('.lead'),
         form: document.querySelector('form'),
         input: document.getElementById('url-input'),
-        display3: document.querySelector('.display-3'),
+        h1: document.querySelector('.display-3'),
         exampleP: document.querySelector('.mt-2'),
         btn: document.querySelector('button[type="submit"]'),
-        dangerP: document.querySelector('.feedback'),
+        feedback: document.querySelector('.feedback'),
         postsDiv: document.querySelector('.posts'),
       };
 
       elements.lead.textContent = i18nInst.t('keyLead');
-      elements.display3.textContent = i18nInst.t('keyHeader');
+      elements.h1.textContent = i18nInst.t('keyHeader');
       elements.exampleP.textContent = i18nInst.t('keyExample');
       elements.btn.textContent = i18nInst.t('keyBtn');
 
@@ -52,7 +54,7 @@ export default () => {
           modal: '',
         },
       };
-      const timeoutPostsUpdating = 5000;
+
       const validate = (validlinks, inputvalue) => {
         const schema = yup.object({
           feedUrl: yup.string().url('errTexts.errUrl')

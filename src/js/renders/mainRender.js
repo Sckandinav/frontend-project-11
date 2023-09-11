@@ -9,17 +9,17 @@ export default (state, elements, i18n) => (path, value, previousValue) => {
     case 'form.status':
       if (value === 'invalid') {
         elements.input.classList.add('error');
-        elements.dangerP.classList.remove('text-success');
-        elements.dangerP.classList.add('text-danger');
+        elements.feedback.classList.remove('text-success');
+        elements.feedback.classList.add('text-danger');
       }
       break;
     case 'form.error':
-      elements.dangerP.textContent = i18n.t(value);
+      elements.feedback.textContent = i18n.t(value);
       break;
 
     case 'request.status':
       if (value === 'processing') {
-        elements.dangerP.textContent = '';
+        elements.feedback.textContent = '';
         elements.input.classList.remove('error');
         elements.input.setAttribute('disabled', '');
         elements.btn.setAttribute('disabled', '');
@@ -30,24 +30,24 @@ export default (state, elements, i18n) => (path, value, previousValue) => {
       }
       if (value === 'failed') {
         elements.input.classList.remove('error');
-        elements.dangerP.classList.remove('text-success');
-        elements.dangerP.classList.add('text-danger');
+        elements.feedback.classList.remove('text-success');
+        elements.feedback.classList.add('text-danger');
         elements.input.removeAttribute('disabled');
         elements.btn.removeAttribute('disabled');
         elements.input.focus({ preventScroll: true });
       }
       if (value === 'finished') {
         elements.input.classList.remove('error');
-        elements.dangerP.classList.remove('text-danger');
-        elements.dangerP.classList.add('text-success');
-        elements.dangerP.textContent = i18n.t('valid');
+        elements.feedback.classList.remove('text-danger');
+        elements.feedback.classList.add('text-success');
+        elements.feedback.textContent = i18n.t('valid');
         elements.input.removeAttribute('disabled');
         elements.btn.removeAttribute('disabled');
         elements.input.focus({ preventScroll: true });
       }
       break;
     case 'request.error':
-      elements.dangerP.textContent = i18n.t(value);
+      elements.feedback.textContent = i18n.t(value);
       break;
 
     case 'uiState.visitedLinks':
