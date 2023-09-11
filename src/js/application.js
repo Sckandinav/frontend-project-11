@@ -10,6 +10,13 @@ import mainRender from './renders/mainRender.js';
 
 const timeoutPostsUpdating = 5000;
 
+const getErrorCode = (err) => {
+  if (axios.isAxiosError(err)) {
+    return 'errTexts.networkErr';
+  }
+  return 'errTexts.invalid';
+};
+
 export default () => {
   const i18nInst = i18n.createInstance();
   i18nInst.init({
@@ -103,7 +110,7 @@ export default () => {
 
       setTimeout(() => getNewsUpdate(watchedState.data.feeds), timeoutPostsUpdating);
 
-      elements.form.addEventListener('submit', async (e) => {
+      elements.form.addEventListener('submit', (e) => {
         e.preventDefault();
         const inputValue = e.target[0].value;
         watchedState.request.status = 'processing';
@@ -112,7 +119,7 @@ export default () => {
         validate(validLinks, inputValue)
           .then((request) => {
             const reqUrl = addProxy(request.feedUrl);
-            axios.get(reqUrl)
+            return axios.get(reqUrl)
               .then((response) => {
                 const { feed, posts } = parse(response);
                 const id = _.uniqueId('feed_');
@@ -135,17 +142,12 @@ export default () => {
                 watchedState.request.status = 'finished';
               })
               .catch((err) => {
-                if (axios.isAxiosError(err)) {
-                  console.log(err);
-                  watchedState.form.status = 'filling';
-                  watchedState.request.error = 'errTexts.networkErr';
-                  watchedState.request.status = 'failed';
-                } else {
-                  console.log(err.message);
-                  watchedState.form.status = 'filling';
-                  watchedState.request.error = 'errTexts.invalid';
-                  watchedState.request.status = 'failed';
-                }
+                const errorAnswer = getErrorCode(err);
+
+                console.log(err.message);
+                watchedState.form.status = 'filling';
+                watchedState.request.error = errorAnswer;
+                watchedState.request.status = 'failed';
               });
           })
           .catch((err) => {
