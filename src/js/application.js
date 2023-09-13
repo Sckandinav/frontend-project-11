@@ -1,21 +1,59 @@
 import * as yup from 'yup';
 import i18n from 'i18next';
 import axios from 'axios';
-import onChange from 'on-change';
 import _ from 'lodash';
 import ru from './locales/ru.js';
 import parse from './parsers.js';
 import { addProxy, getFeedId, updatePosts } from './utils.js';
-import mainRender from './renders/mainRender.js';
+import watcher from './renders/mainRender.js';
 
 const timeoutPostsUpdating = 5000;
 
-const getErrorCode = (err) => {
+const handleError = (err, watchedState) => {
   if (axios.isAxiosError(err)) {
-    return 'errTexts.networkErr';
+    console.log(err);
+    watchedState.form.status = 'filling';
+    watchedState.request.error = 'errTexts.networkErr';
+    watchedState.request.status = 'failed';
+  } else {
+    console.log(err.message);
+    watchedState.form.status = 'filling';
+    watchedState.request.error = 'errTexts.invalid';
+    watchedState.request.status = 'failed';
   }
-  return 'errTexts.invalid';
 };
+
+const loadRss = (url, watchedState) => new Promise((resolve, reject) => {
+  const reqUrl = addProxy(url);
+
+  axios.get(reqUrl)
+    .then((response) => {
+      const { feed, posts } = parse(response);
+      const id = _.uniqueId('feed_');
+      const additionalKeys = {
+        id,
+        link: url,
+      };
+      watchedState.data.feeds.push({ ...feed, ...additionalKeys });
+
+      const postsWithId = posts.map((post) => {
+        const identificators = {
+          feedId: id,
+          id: _.uniqueId('post_'),
+        };
+        return { ...post, ...identificators };
+      });
+
+      watchedState.form.status = 'filling';
+      watchedState.data.posts.push(postsWithId);
+      watchedState.request.status = 'finished';
+      resolve();
+    })
+    .catch((err) => {
+      handleError(err, watchedState);
+      reject();
+    });
+});
 
 export default () => {
   const i18nInst = i18n.createInstance();
@@ -62,6 +100,7 @@ export default () => {
         },
       };
 
+      console.log(state);
       const validate = (validlinks, inputvalue) => {
         const schema = yup.object({
           feedUrl: yup.string().url('errTexts.errUrl')
@@ -74,7 +113,7 @@ export default () => {
         return schema.validate({ feedUrl: inputvalue });
       };
 
-      const watchedState = onChange(state, mainRender(state, elements, i18nInst));
+      const watchedState = watcher(state, elements, i18nInst);
 
       const getNewsUpdate = (feeds) => {
         const links = feeds.map((feed) => feed.link);
@@ -116,53 +155,27 @@ export default () => {
         watchedState.request.status = 'processing';
 
         const validLinks = watchedState.data.feeds.map((feed) => feed.link);
+
         validate(validLinks, inputValue)
-          .then((request) => {
-            const reqUrl = addProxy(request.feedUrl);
-            return axios.get(reqUrl)
-              .then((response) => {
-                const { feed, posts } = parse(response);
-                const id = _.uniqueId('feed_');
-                const additionalKeys = {
-                  id,
-                  link: request.feedUrl,
-                };
-                watchedState.data.feeds.push({ ...feed, ...additionalKeys });
-
-                const postsWithId = posts.map((post) => {
-                  const identificators = {
-                    feedId: id,
-                    id: _.uniqueId('post_'),
-                  };
-                  return { ...post, ...identificators };
-                });
-
-                watchedState.form.status = 'filling';
-                watchedState.data.posts.push(postsWithId);
-                watchedState.request.status = 'finished';
-              })
-              .catch((err) => {
-                const errorAnswer = getErrorCode(err);
-
-                console.log(err.message);
-                watchedState.form.status = 'filling';
-                watchedState.request.error = errorAnswer;
-                watchedState.request.status = 'failed';
-              });
-          })
           .catch((err) => {
             watchedState.request.status = 'waiting';
             watchedState.form.error = err.message;
             watchedState.form.status = 'invalid';
+            throw err;
+          })
+          .then((request) => loadRss(request.feedUrl, watchedState))
+          .catch((err) => {
+            console.error(err);
           });
       });
-
       const postsDiv = document.querySelector('.posts');
       postsDiv.addEventListener('click', (e) => {
-        const targetLink = e.target.closest('a');
-        if (targetLink) watchedState.uiState.visitedLinks.push(e.target.dataset.postid);
-        const targetModal = e.target.closest('.btn-sm');
-        if (targetModal) watchedState.uiState.modal = targetModal.id;
+        console.log(e.target.dataset.postid);
+        if (e.target.id) {
+          watchedState.uiState.modal = e.target.id;
+        } else {
+          watchedState.uiState.visitedLinks.push(e.target.dataset.postid);
+        }
       });
     })
     .catch((err) => {
