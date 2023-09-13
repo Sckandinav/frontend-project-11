@@ -23,6 +23,12 @@ const handleError = (err, watchedState) => {
   }
 };
 
+const mapPostsWithId = (posts, feedId) => posts.map((post) => ({
+  feedId,
+  id: _.uniqueId('post_'),
+  ...post,
+}));
+
 const loadRss = (url, watchedState) => new Promise((resolve, reject) => {
   const reqUrl = addProxy(url);
 
@@ -36,13 +42,7 @@ const loadRss = (url, watchedState) => new Promise((resolve, reject) => {
       };
       watchedState.data.feeds.push({ ...feed, ...additionalKeys });
 
-      const postsWithId = posts.map((post) => {
-        const identificators = {
-          feedId: id,
-          id: _.uniqueId('post_'),
-        };
-        return { ...post, ...identificators };
-      });
+      const postsWithId = mapPostsWithId(posts, id);
 
       watchedState.form.status = 'filling';
       watchedState.data.posts.push(postsWithId);
@@ -54,6 +54,32 @@ const loadRss = (url, watchedState) => new Promise((resolve, reject) => {
       reject();
     });
 });
+
+const getNewsUpdate = (feeds, watchedState) => {
+  const links = feeds.map((feed) => feed.link);
+  const urls = links.map((link) => addProxy(link))
+    .map((url) => axios.get(url));
+
+  Promise.all(urls)
+    .then((news) => {
+      const updatedNews = news.map((issue) => {
+        const { posts, titlefeed } = parse(issue);
+        const idOfFeed = getFeedId(watchedState.data.feeds, titlefeed);
+        const newPostsWithId = mapPostsWithId(posts, idOfFeed);
+        return newPostsWithId;
+      });
+
+      const [...posts] = watchedState.data.posts;
+      const updatedPosts = updatePosts(posts, updatedNews);
+      watchedState.data.posts = updatedPosts;
+    })
+    .catch((error) => {
+      console.log(error);
+    })
+    .finally(() => {
+      setTimeout(() => getNewsUpdate(feeds, watchedState), timeoutPostsUpdating);
+    });
+};
 
 export default () => {
   const i18nInst = i18n.createInstance();
@@ -115,39 +141,15 @@ export default () => {
 
       const watchedState = watcher(state, elements, i18nInst);
 
-      const getNewsUpdate = (feeds) => {
-        const links = feeds.map((feed) => feed.link);
-        const urls = links.map((link) => addProxy(link))
-          .map((url) => axios.get(url));
-
-        Promise.all(urls)
-          .then((news) => {
-            const updatedNews = news.map((issue) => {
-              const { posts, titlefeed } = parse(issue);
-              const idOfFeed = getFeedId(watchedState.data.feeds, titlefeed);
-
-              const newPostsWithId = posts.map((post) => {
-                const postId = {
-                  feedId: idOfFeed,
-                  id: _.uniqueId('post_'),
-                };
-                return { ...post, ...postId };
-              });
-              return newPostsWithId;
-            });
-            const [...posts] = watchedState.data.posts;
-            const updatedPosts = updatePosts(posts, updatedNews);
-            watchedState.data.posts = updatedPosts;
-          })
-          .catch((error) => {
-            console.log(error);
-          })
-          .finally(() => {
-            setTimeout(() => getNewsUpdate(feeds), timeoutPostsUpdating);
-          });
-      };
-
-      setTimeout(() => getNewsUpdate(watchedState.data.feeds), timeoutPostsUpdating);
+      const postsDiv = document.querySelector('.posts');
+      postsDiv.addEventListener('click', (e) => {
+        console.log(e.target.dataset.postid);
+        if (e.target.id) {
+          watchedState.uiState.modal = e.target.id;
+        } else {
+          watchedState.uiState.visitedLinks.push(e.target.dataset.postid);
+        }
+      });
 
       elements.form.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -168,15 +170,8 @@ export default () => {
             console.error(err);
           });
       });
-      const postsDiv = document.querySelector('.posts');
-      postsDiv.addEventListener('click', (e) => {
-        console.log(e.target.dataset.postid);
-        if (e.target.id) {
-          watchedState.uiState.modal = e.target.id;
-        } else {
-          watchedState.uiState.visitedLinks.push(e.target.dataset.postid);
-        }
-      });
+
+      setTimeout(() => getNewsUpdate(watchedState.data.feeds, watchedState), timeoutPostsUpdating);
     })
     .catch((err) => {
       console.log('Something went wrong loading', err);
