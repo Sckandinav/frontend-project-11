@@ -8,7 +8,16 @@
     "build-dev": "npx webpack --mode development",
     "build-prod": "npx webpack --mode production"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sckandinav/frontend-project-11"
+  },
+  "keywords": [
+    "RSS-agregator",
+    "project",
+    "webpack"
+  ],
+  "author": "Balov V.",
   "license": "ISC",
   "devDependencies": {
     "@popperjs/core": "^2.11.8",
