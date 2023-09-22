@@ -11,6 +11,9 @@ The SPA application for the aggregation of RSS feeds.
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/e7e59991bfba96ca211a/maintainability)](https://codeclimate.com/github/Sckandinav/frontend-project-11/maintainability)
 
+[![My tests](https://github.com/Sckandinav/frontend-project-11/workflows/LintTest/badge.svg)](https://github.com/Sckandinav/frontend-project-11/actions)
+
+
 ## Installation
 
 To install RSS-reader locally:
